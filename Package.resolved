@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "7a4dfe026f6ee0f8ad741b58df74c60af296365d",
-        "version" : "1.9.0"
+        "revision" : "794dc9d42720af97cedd395e8cd2add9173ffd9a",
+        "version" : "1.11.1"
       }
     },
     {
@@ -41,8 +41,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/routing-kit.git",
       "state" : {
-        "revision" : "5603b81ceb744b8318feab1e60943704977a866b",
-        "version" : "4.3.1"
+        "revision" : "ffac7b3a127ce1e85fb232f1a6271164628809ad",
+        "version" : "4.6.0"
+      }
+    },
+    {
+      "identity" : "swift-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-algorithms.git",
+      "state" : {
+        "revision" : "b14b7f4c528c942f121c8b860b9410b2bf57825e",
+        "version" : "1.0.0"
       }
     },
     {
@@ -104,8 +113,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-http2.git",
       "state" : {
-        "revision" : "000ca94f9de92c95b9ac85d44600b7b0fe25a3e5",
-        "version" : "1.19.2"
+        "revision" : "108ac15087ea9b79abb6f6742699cf31de0e8772",
+        "version" : "1.22.0"
       }
     },
     {
@@ -127,12 +136,21 @@
       }
     },
     {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics",
+      "state" : {
+        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
+        "version" : "1.0.2"
+      }
+    },
+    {
       "identity" : "vapor",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor/vapor.git",
       "state" : {
-        "revision" : "e0fd4f3d76469dd6a0efb2be5c0b2f96b7581187",
-        "version" : "4.55.1"
+        "revision" : "d9d83cd3eb09fd7979775082f9247d7d69d55cd2",
+        "version" : "4.63.0"
       }
     },
     {
