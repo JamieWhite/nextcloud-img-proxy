@@ -1,41 +1,81 @@
-# nextcloud-img-proxy
+# Nextcloud image proxy
 
-This creates an API that proxies the nextcloud API. This turns what is several nextcloud requests to upload and share an image into one. Any images you upload to this API will be renamed to `IMG_DATE.jpeg`. I guess this means it only supports jpegs 😄
+A small Vapor app that uploads a JPEG to Nextcloud and returns its public image URL.
 
-# How to run
+## Development
 
-Copy this into `docker-compose.yml` into its own folder. then run `docker-compose up -d`
+Use Swift 6.4 (Swift 6 language mode) or newer. macOS 13 is the minimum deployment target; Linux is supported through Docker. Dependencies are pinned in `Package.resolved`.
 
+```sh
+swift build
+swift test
+NEXTCLOUD_DOMAIN=cloud.example.com SHARE_DOMAIN=img.example.com swift run App serve --hostname 127.0.0.1 --port 8080
 ```
-version: '3.7'
 
-x-shared_environment: &shared_environment
-  LOG_LEVEL: ${LOG_LEVEL:-debug}
-  
+The layout follows the Vapor 4 template: a single executable target, an async `@main` entrypoint, `configure.swift`, `routes.swift`, route controllers, and Swift Testing with VaporTesting. Vapor 4.122.3 is the stable baseline at this update; Vapor 5 is still in beta.
+
+## API
+
+- `GET /upload-image` returns an example upload URL.
+- `PUT /upload-image/:token/:username/:folder` accepts raw JPEG bytes, up to 40 MB, and returns the shared image URL as plain text.
+- The PUT route also accepts one trailing filename segment, which is ignored for compatibility. The server generates the filename.
+
+The Nextcloud and image domains are required environment variables: `NEXTCLOUD_DOMAIN` and `SHARE_DOMAIN`. The app fails at startup if either is missing or empty. Defaults are supplied only by Docker Compose. Supply hostnames only, without `https://` or paths; the app uses HTTPS. The token is passed to Nextcloud as bearer authorization. Because the existing API carries credentials in its URL, serve it over HTTPS and avoid storing request paths in proxy access logs.
+
+## Deploy a published image
+
+For a Raspberry Pi running a 64-bit OS, save this as `compose.yaml`:
+
+```yaml
 services:
   app:
     image: jamiewhite/nextcloud-img-proxy:latest
-    restart: always
-    environment:
-      <<: *shared_environment
+    platform: linux/arm64
+    restart: unless-stopped
     ports:
-      - '45315:8080'
+      - "45315:8080"
+    environment:
+      LOG_LEVEL: info
+      NEXTCLOUD_DOMAIN: ${NEXTCLOUD_DOMAIN:?Set NEXTCLOUD_DOMAIN in .env}
+      SHARE_DOMAIN: ${SHARE_DOMAIN:?Set SHARE_DOMAIN in .env}
 ```
 
-You can change the exposed port from 45315 to anything you want. You need to keep the internal port as 8080 however
+Create `.env` alongside it with your `NEXTCLOUD_DOMAIN` and `SHARE_DOMAIN` hostnames, then run:
 
-# the API
+```sh
+docker compose pull app
+docker compose up -d app
+```
 
-The API exposes 1 route: `http://host/upload-image` which has `upload-image/{nextcloud token}/{nextcloud username}/{folder}`
+The host port `45315` can be changed; the container listens on port `8080`.
 
-## Parameters:
+Generate the Nextcloud app token in your account's security settings. Use your Nextcloud username and an existing top-level destination folder in the upload URL. An iOS or macOS Shortcut can convert a photo to JPEG, upload it, and copy the returned link for sharing.
 
-`nextcloud token` = The app token you generate in the nextcloud web UI under the security settings. You can also use your main password.
+The release workflow in `.github/workflows/docker-image.yml` publishes AMD64 and ARM64 images to Docker Hub when a GitHub release is published. It uses the repository secrets `DOCKER_USERNAME` and `DOCKER_PASSWORD`.
 
-`nextcloud username` = The nextcloud username.
+## Build locally with Docker
 
-`folder` = the folder where images will be uploaded. You might have to create this folder first. I'm not sure if nested folders work so you might have to create a top level folder.
+```sh
+docker compose build
+docker compose up app
+```
 
-# Use cases 
+Override the domains in your shell or a local `.env` file (Compose passes them into the container):
 
-1. You can use this in an iOS or Mac shortcut to share images from a folder/camera roll/etc
+```dotenv
+NEXTCLOUD_DOMAIN=cloud.example.com
+SHARE_DOMAIN=img.example.com
+```
+
+Then run `docker compose up --build app`. For local Swift runs, export the same environment variables in your shell.
+
+The Dockerfile follows the current Vapor template with Swift 6.4 on Ubuntu Noble, a non-root runtime user, jemalloc, and the Swift crash reporter. It runs the `App` executable on port 8080. The old `Run` target has been removed; update any external scripts that invoke it.
+
+## Updating
+
+```sh
+swift package update
+swift test
+```
+
+Commit the updated lockfile with dependency changes. The tests use in-process requests and do not require Nextcloud credentials.

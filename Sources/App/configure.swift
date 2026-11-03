@@ -1,12 +1,11 @@
 import Vapor
 
-// configures your application
-public func configure(_ app: Application) throws {
-    // uncomment to serve files from /Public folder
-    // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-    
+func configure(_ app: Application) async throws {
+    try await configure(app, nextcloud: .fromEnvironment())
+}
+
+func configure(_ app: Application, nextcloud: NextcloudConfiguration) async throws {
     app.routes.defaultMaxBodySize = "40mb"
 
-    // register routes
-    try routes(app)
+    try routes(app, nextcloud: nextcloud)
 }
